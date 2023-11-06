@@ -10,7 +10,7 @@ from dateutil.relativedelta import relativedelta
 AIRFLOW_HOME = os.getenv("AIRFLOW_HOME")
 logging.basicConfig()
 
-def print_execution_date(date):
+def extract_geojson_data(date, **kwargs):
 
     url = "https://earthquake.usgs.gov/fdsnws/event/1/query?"
 
@@ -26,6 +26,8 @@ def print_execution_date(date):
     }
 
     logging.info(f"CCCCCCCCCCC{query_params}")
+    logging.info(f"DDDDDDDD{kwargs}")
+
 
     try:
         # Send a GET request with the specified query parameters
@@ -51,13 +53,15 @@ with DAG(
     catchup=True
 ) as dag:
 
-    date = "{{ execution_date }}"
-
-
-    print_execution_date_task = PythonOperator(
-        task_id="print_execution_date",
-        python_callable=print_execution_date,
-        op_kwargs=dict(date="{{ ds }}")
+    extract_geojson_data_task = PythonOperator(
+        task_id="extract_geojson_data",
+        python_callable=extract_geojson_data,
+        op_kwargs=dict(
+            date="{{ ds }}",
+            execution_date = "{{ execution_date }}",
+            data_interval_start="{{data_interval_start}}",
+            data_interval_end="{{data_interval_end}}"
+        )
     )
 
-    print_execution_date_task
+    extract_geojson_data_task
