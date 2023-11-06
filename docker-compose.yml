@@ -60,3 +60,19 @@ services:
             retries: 3
         tty: true
         stdin_open: true
+
+    metabase:
+        image: metabase/metabase
+        container_name: metabase
+        restart: always
+        environment:
+            MB_DB_TYPE: bigquery
+            MB_DB_HOST: batch1413-earthquake
+            MB_DB_PORT: 443
+            MB_DB_DBNAME: earthquakes_dataset
+            MB_DB_USER: earthquake-project@batch1413-earthquake.iam.gserviceaccount.com
+            MB_DB_KEY_FILE: /metabase-data/batch1413-earthquake.json
+        volumes:
+            - ./batch1413-earthquake.json:/metabase-data/batch1413-earthquake.json
+        ports:
+            - 3000:3000
