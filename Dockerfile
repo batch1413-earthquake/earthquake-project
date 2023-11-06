@@ -8,7 +8,7 @@ ENV AIRFLOW_HOME=/app/airflow
 
 # Install curl and mysql that will be needed for our tests
 RUN apt-get update && apt-get install -y curl \
-    gcc default-mysql-server default-libmysqlclient-dev
+  gcc default-mysql-server default-libmysqlclient-dev
 
 WORKDIR $AIRFLOW_HOME
 
@@ -18,5 +18,5 @@ RUN chmod +x scripts/entrypoint.sh
 COPY pyproject.toml poetry.lock ./
 
 RUN pip3 install --upgrade --no-cache-dir pip \
-    && pip3 install poetry \
-    && poetry install --only main
+  && pip3 install poetry \
+  && poetry install --only main
