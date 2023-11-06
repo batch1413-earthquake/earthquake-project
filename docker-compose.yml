@@ -61,7 +61,6 @@ services:
         tty: true
         stdin_open: true
 
-
     metabase:
         image: metabase/metabase
         container_name: metabase
