@@ -17,23 +17,28 @@ from airflow.providers.google.cloud.transfers.local_to_gcs import (
     LocalFilesystemToGCSOperator)
 
 AIRFLOW_HOME = os.getenv("AIRFLOW_HOME")
+GCP_CONNECTION_ID = os.getenv('GCP_CONNECTION_ID')
+
 
 with DAG(
     "create_big_query_dataset",
-    schedule_interval="@once",
+    schedule_interval='@once',
+    start_date= datetime.now(),
 ) as dag:
 
+
+    print(GCP_CONNECTION_ID)
     create_dataset_task = BigQueryCreateEmptyDatasetOperator(
         task_id="create_dataset",
-        gcp_conn_id="google_cloud_connection",
-        dataset_id="gold_earthquake_dataset",
+        gcp_conn_id="max-connection-string",
+        dataset_id="gold_earthquake_dataset"
     )
 
     create_table_task = BigQueryCreateEmptyTableOperator(
         task_id="create_table",
-        gcp_conn_id="google_cloud_connection",
-        dataset_id="de_airflow_taxi_gold",
-        table_id="trips",
+        gcp_conn_id="max-connection-string",
+        dataset_id="earthquakes-project",
+        table_id="earthquake-event",
         schema_fields=[{'name': 'type', 'type': 'STRING'},
             {'name': 'id', 'type': 'STRING'},
             {'name': 'properties_magnitude', 'type': 'STRING'},
