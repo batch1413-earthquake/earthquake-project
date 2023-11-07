@@ -54,8 +54,8 @@ with DAG(
 
     download_geojson_data_task = GCSToLocalFilesystemOperator(
         task_id="download_geojson_data",
-        object_name=f"bronze/usgs_data/{json_file_path.split('/')[-1]}",
-        bucket=os.environ["BUCKET_NAME"],
+        object_name=f"usgs_data/{json_file_path.split('/')[-1]}",
+        bucket=os.environ["BRONZE_BUCKET_NAME"],
         filename=json_file_path,
         gcp_conn_id=gcp_conn_id
     )
@@ -72,8 +72,8 @@ with DAG(
     upload_local_file_to_gcs_task = LocalFilesystemToGCSOperator(
         task_id="upload_local_file_to_gcs",
         src=parquet_file_path,
-        dst=f"silver/usgs_data/",
-        bucket=os.environ["BUCKET_NAME"],
+        dst=f"usgs_data/",
+        bucket=os.environ["SILVER_BUCKET_NAME"],
         gcp_conn_id=gcp_conn_id
     )
 

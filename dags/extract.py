@@ -66,8 +66,8 @@ with DAG(
     upload_local_file_to_gcs_task = LocalFilesystemToGCSOperator(
         task_id="upload_local_file_to_gcs",
         src=json_file_path,
-        dst="bronze/usgs_data/",
-        bucket=os.environ["BUCKET_NAME"],
+        dst="usgs_data/",
+        bucket=os.environ["BRONZE_BUCKET_NAME"],
         gcp_conn_id=gcp_conn_id
     )
 
