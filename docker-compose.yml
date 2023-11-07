@@ -28,7 +28,7 @@ services:
             - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:$POSTGRES_PASSWORD@postgres:5432/db
             - AIRFLOW__CORE__LOAD_EXAMPLES=false
             - GCP_CONNECTION_ID=${GCP_CONNECTION_ID}
-            - BUCKET_NAME=${GCP_CONNECTION_ID}
+            - BUCKET_NAME=${BUCKET_NAME}
         volumes:
             - ./dags:/app/airflow/dags
             - ./data:/app/airflow/data
