@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 
 from airflow import DAG
+from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.providers.google.cloud.transfers.local_to_gcs import (
     LocalFilesystemToGCSOperator)
@@ -47,6 +48,12 @@ with DAG(
     json_file_path = f"{AIRFLOW_HOME}/data/{FILE_PREFIX}_{date_str}.json"
     gcp_conn_id = os.environ["GCP_CONNECTION_ID"]
 
+    # create folder if not exists
+    create_bronze_folder_task = BashOperator(
+        task_id="create_bronze_folder",
+        bash_command=f"mkdir -p {AIRFLOW_HOME}/data/bronze/",
+    )
+
     extract_geojson_data_task = PythonOperator(
         task_id="extract_geojson_data",
         python_callable=extract_geojson_data,
@@ -64,4 +71,4 @@ with DAG(
         gcp_conn_id=gcp_conn_id
     )
 
-    extract_geojson_data_task >> upload_local_file_to_gcs_task
+    create_bronze_folder_task >> extract_geojson_data_task >> upload_local_file_to_gcs_task
