@@ -2,7 +2,6 @@ import os
 import requests
 import json
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -60,7 +59,7 @@ with DAG(
     upload_local_file_to_gcs_task = LocalFilesystemToGCSOperator(
         task_id="upload_local_file_to_gcs",
         src=json_file_path,
-        dst="bronze/",
+        dst="bronze/usgs_data/",
         bucket=os.environ["BUCKET_NAME"],
         gcp_conn_id=gcp_conn_id
     )
