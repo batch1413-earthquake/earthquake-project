@@ -27,18 +27,17 @@ with DAG(
 ) as dag:
 
 
-    print(GCP_CONNECTION_ID)
     create_dataset_task = BigQueryCreateEmptyDatasetOperator(
         task_id="create_dataset",
-        gcp_conn_id="max-connection-string",
+        gcp_conn_id=f"{GCP_CONNECTION_ID}",
         dataset_id="gold_earthquake_dataset"
     )
 
     create_table_task = BigQueryCreateEmptyTableOperator(
         task_id="create_table",
-        gcp_conn_id="max-connection-string",
-        dataset_id="earthquakes-project",
-        table_id="earthquake-event",
+        gcp_conn_id=f"{GCP_CONNECTION_ID}",
+        dataset_id="gold_earthquake_dataset",
+        table_id="earthquakes",
         schema_fields=[{'name': 'type', 'type': 'STRING'},
             {'name': 'id', 'type': 'STRING'},
             {'name': 'properties_magnitude', 'type': 'STRING'},
