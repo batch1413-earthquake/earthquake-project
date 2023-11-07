@@ -2,10 +2,10 @@ import os
 import requests
 import logging
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from dateutil.relativedelta import relativedelta
 
 AIRFLOW_HOME = os.getenv("AIRFLOW_HOME")
 logging.basicConfig()
@@ -36,12 +36,16 @@ def extract_geojson_data(date, **kwargs):
         # Check if the request was successful (status code 200)
         if response.status_code == 200:
             # Print the content of the response
-            print(response.text)
+            return response.text
         else:
-            print(f"Request failed with status code: {response.status_code}")
+            return f"Request failed with status code: {response.status_code}"
 
     except requests.exceptions.RequestException as e:
-        print(f"Request error: {e}")
+        return f"Request error: {e}"
+
+
+def transform_geojson_to_dataframe(geojson: str):
+    logging.info(geojson)
 
 
 with DAG(
