@@ -39,9 +39,9 @@ def merge_countries_and_details_save_locally(
 
 with DAG(
     "ref_load",
-    start_date=datetime.now(),
+    start_date= datetime(2023, 1, 1),
     schedule_interval="@once",
-    catchup=False,
+    catchup=True,
 ) as dag:
     date_str = "{{ yesterday_ds }}"
 
@@ -58,10 +58,19 @@ with DAG(
 
     gcp_conn_id = os.environ["GCP_CONNECTION_ID"]
 
-    wait_for_extract_ref_task = ExternalTaskSensor(
-        task_id="extract_sensor_ref",
+    wait_for_extract_ref_task_detail = ExternalTaskSensor(
+        task_id="extract_country_sensor_ref",
         external_dag_id="extract_ref",
-        external_task_id="upload_local_earthquake_file_to_gcs",
+        external_task_id="upload_local_country_detail_file_to_gcs",
+        timeout=600,
+        allowed_states=["success"],
+        poke_interval=10,
+    )
+
+    wait_for_extract_ref_task_goejson = ExternalTaskSensor(
+        task_id="extract_geojson_sensor_ref",
+        external_dag_id="extract_ref",
+        external_task_id="upload_local_country_geojson_file_to_gcs",
         timeout=600,
         allowed_states=["success"],
         poke_interval=10,
@@ -69,8 +78,6 @@ with DAG(
 
     create_silver_folder_task = BashOperator(task_id="create_silver_folder", bash_command=f"mkdir -p {local_silver_path}")
 
-
-    # referential flow
 
     merge_countries_and_details_save_locally_task = PythonOperator(
         task_id="merge_countries_and_details_save_locally",
@@ -91,7 +98,6 @@ with DAG(
     )
 
 
-    wait_for_extract_ref_task >> create_silver_folder_task
-
-
+    wait_for_extract_ref_task_detail >> wait_for_extract_ref_task_goejson
+    wait_for_extract_ref_task_goejson >> create_silver_folder_task
     create_silver_folder_task >> merge_countries_and_details_save_locally_task >> upload_local_referential_countries_file_to_gcs_task

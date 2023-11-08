@@ -42,9 +42,9 @@ def extract_detail_countries(json_file_path):
 
 with DAG(
     "extract_ref",
-    start_date=datetime.now(),
+    start_date= datetime(2023, 1, 1),
     schedule_interval="@once",
-    catchup=False,
+    catchup=True,
 ) as dag:
     date_str = "{{ yesterday_ds }}"
     countries_json_file_path = f"{AIRFLOW_HOME}/data/bronze/countries.geojson"
