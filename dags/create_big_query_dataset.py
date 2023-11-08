@@ -23,7 +23,7 @@ GCP_CONNECTION_ID = os.getenv('GCP_CONNECTION_ID')
 with DAG(
     "create_big_query_dataset",
     schedule_interval='@once',
-    start_date= datetime.now(),
+    start_date= datetime(2023, 1, 1),
 ) as dag:
 
 
@@ -40,16 +40,15 @@ with DAG(
         table_id="earthquakes",
         schema_fields=[{'name': 'type', 'type': 'STRING'},
             {'name': 'id', 'type': 'STRING'},
-            {'name': 'properties_magnitude', 'type': 'STRING'},
+            {'name': 'properties_magnitude', 'type': 'FLOAT'},
             {'name': 'properties_place', 'type': 'STRING'},
-            {'name': 'properties_time', 'type': 'STRING'},
-            {'name': 'properties_updated', 'type': 'STRING'},
-            {'name': 'properties_felt_count', 'type': 'STRING'},
+            {'name': 'properties_time', 'type': 'DATETIME'},
+            {'name': 'properties_updated', 'type': 'DATETIME'},
+            {'name': 'properties_felt_count', 'type': 'INTEGER'},
             {'name': 'properties_alert', 'type': 'STRING'},
             {'name': 'properties_status', 'type': 'STRING'},
-            {'name': 'properties_tsunami', 'type': 'INTEGER'},
+            {'name': 'properties_tsunami', 'type': 'BOOLEAN'},
             {'name': 'properties_significance', 'type': 'INTEGER'},
-            {'name': 'properties_replica_ids', 'type': 'STRING'},
             {'name': 'properties_seismic_station_count', 'type': 'INTEGER'},
             {'name': 'properties_type', 'type': 'STRING'},
             {'name': 'properties_title', 'type': 'STRING'},
