@@ -30,11 +30,10 @@ def merge_countries_and_details_save_locally(
     gdf = gpd.read_file(countries_geojson_bronze_file_path)
     df_detail = pd.read_csv(countries_details_bronze_file_path)
     gdf["ISO_A3"] = gdf["ISO_A3"].astype(str)
-    df_detail["ISO_A3"] = df_detail['FIFA']
-    df_detail["ISO_A3"] = df_detail["ISO_A3"].astype(str)
+    df_detail['ISO_A3'] = df_detail['alpha-3'].astype(str)
     new_df = gdf.join(df_detail.set_index("ISO_A3"), on="ISO_A3")
     new_df["COUNTRY_NAME"] = new_df["ADMIN"]
-    export = new_df[["COUNTRY_NAME", "ISO_A3", "geometry", "Sub-region Name", "Continent"]]
+    export = new_df[["COUNTRY_NAME", "ISO_A3", "geometry", "region", "sub-region"]]
     export.to_file(countries_geojson_silver_file_path, driver="GeoJSON")
 
 
@@ -117,10 +116,10 @@ with DAG(
 
     wait_for_extract_task >> create_silver_folder_task
 
-    # earthquake flow orchestration
-    create_silver_folder_task >> download_geojson_data_task
-    download_geojson_data_task >> geojson_data_to_parquet_task
-    geojson_data_to_parquet_task >> upload_local_earthquake_file_to_gcs_task
+    # # earthquake flow orchestration
+    # create_silver_folder_task >> download_geojson_data_task
+    # download_geojson_data_task >> geojson_data_to_parquet_task
+    # geojson_data_to_parquet_task >> upload_local_earthquake_file_to_gcs_task
 
     # referential flow orchestration
 

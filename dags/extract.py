@@ -14,7 +14,7 @@ FILE_PREFIX = "geojson_data"
 API_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query?"
 
 COUNTRIES_URL_GEOJSON = "https://pkgstore.datahub.io/core/geo-countries/countries/archive/23f420f929e0e09c39d916b8aaa166fb/countries.geojson"
-COUNTRIES_DETAIL_GEOJSON = "https://raw.githubusercontent.com/datasets/country-codes/master/data/country-codes.csv"
+COUNTRIES_DETAIL_GEOJSON = "https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.csv"
 
 
 def call_api(url, query_params):
