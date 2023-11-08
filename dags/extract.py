@@ -16,7 +16,7 @@ COUNTRIES_URL_GEOJSON = "https://pkgstore.datahub.io/core/geo-countries/countrie
 COUNTRIES_DETAIL_GEOJSON = "https://raw.githubusercontent.com/datasets/country-codes/master/data/country-codes.csv"
 
 
-def callAPI(url, query_params):
+def call_api(url, query_params):
     try:
         response = requests.get(url, params=query_params)
 
@@ -32,7 +32,7 @@ def callAPI(url, query_params):
     return json_data
 
 
-def saveFileLocally(path, data):
+def save_file_locally(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f)
 
@@ -45,18 +45,18 @@ def extract_geojson_data(date_str: str, json_file_path: str):
         "format": "geojson",
     }
 
-    data = callAPI(API_URL, query_params)
-    saveFileLocally(json_file_path, data)
+    data = call_api(API_URL, query_params)
+    save_file_locally(json_file_path, data)
 
 
 def extract_geojson_countries(json_file_path):
-    data = callAPI(COUNTRIES_URL_GEOJSON, {})
-    saveFileLocally(json_file_path, data)
+    data = call_api(COUNTRIES_URL_GEOJSON, {})
+    save_file_locally(json_file_path, data)
 
 
 def extract_detail_countries(json_file_path):
-    data = callAPI(COUNTRIES_DETAIL_GEOJSON, {})
-    saveFileLocally(json_file_path, data)
+    data = call_api(COUNTRIES_DETAIL_GEOJSON, {})
+    save_file_locally(json_file_path, data)
 
 
 with DAG(
