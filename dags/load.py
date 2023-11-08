@@ -26,19 +26,25 @@ def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
     with open(json_file_path, "r") as f:
         df = pd.json_normalize(json.load(f)["features"])
         renaming = {'properties.mag': 'properties_magnitude',
-            'properties.place':  'properties_place',
-            'properties.time':  'properties_time',
-            'properties.updated':  'properties_updated',
-            'properties.felt':  'properties_felt_count',
-            'properties.alert':  'properties_alert',
-            'properties.status':  'properties_status',
-            'properties.tsunami':  'properties_tsunami',
-            'properties.sig':  'properties_significance',
-            'properties.nst':  'properties_seismic_station_count',
-            'properties.type':  'properties_type',
-            'properties.title':  'properties_title'}
+            'properties.place': 'properties_place',
+            'properties.time': 'properties_time',
+            'properties.updated': 'properties_updated',
+            'properties.felt': 'properties_felt_count',
+            'properties.alert': 'properties_alert',
+            'properties.status': 'properties_status',
+            'properties.tsunami': 'properties_tsunami',
+            'properties.sig': 'properties_significance',
+            'properties.nst': 'properties_seismic_station_count',
+            'properties.type': 'properties_type',
+            'properties.title': 'properties_title'}
         df.rename(columns=renaming, inplace=True)
-        df.apply(split_coordinates, axis='columns')\
+        df = df.apply(split_coordinates, axis='columns')
+        df[['properties_magnitude', 'properties_place',
+            'properties_time', 'properties_updated',
+            'properties_felt_count', 'properties_alert',
+            'properties_status', 'properties_tsunami',
+            'properties_significance', 'properties_seismic_station_count',
+            'properties_type', 'properties_title']] \
             .to_parquet(parquet_file_path, index=False)
 
 with DAG(
