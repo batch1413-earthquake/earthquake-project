@@ -22,19 +22,19 @@ def geojson_data_to_parquet(json_file_path: str, parquet_file_path: str):
         pd.json_normalize(json.load(f)["features"]).to_parquet(parquet_file_path, index=False)
 
 
-def merge_countries_and_details_save_locally(
-    countries_geojson_bronze_file_path: str,
-    countries_details_bronze_file_path: str,
-    countries_geojson_silver_file_path: str,
-):
-    gdf = gpd.read_file(countries_geojson_bronze_file_path)
-    df_detail = pd.read_csv(countries_details_bronze_file_path)
-    gdf["ISO_A3"] = gdf["ISO_A3"].astype(str)
-    df_detail['ISO_A3'] = df_detail['alpha-3'].astype(str)
-    new_df = gdf.join(df_detail.set_index("ISO_A3"), on="ISO_A3")
-    new_df["COUNTRY_NAME"] = new_df["ADMIN"]
-    export = new_df[["COUNTRY_NAME", "ISO_A3", "geometry", "region", "sub-region"]]
-    export.to_file(countries_geojson_silver_file_path, driver="GeoJSON")
+# def merge_countries_and_details_save_locally(
+#     countries_geojson_bronze_file_path: str,
+#     countries_details_bronze_file_path: str,
+#     countries_geojson_silver_file_path: str,
+# ):
+#     gdf = gpd.read_file(countries_geojson_bronze_file_path)
+#     df_detail = pd.read_csv(countries_details_bronze_file_path)
+#     gdf["ISO_A3"] = gdf["ISO_A3"].astype(str)
+#     df_detail['ISO_A3'] = df_detail['alpha-3'].astype(str)
+#     new_df = gdf.join(df_detail.set_index("ISO_A3"), on="ISO_A3")
+#     new_df["COUNTRY_NAME"] = new_df["ADMIN"]
+#     export = new_df[["COUNTRY_NAME", "ISO_A3", "geometry", "region", "sub-region"]]
+#     export.to_file(countries_geojson_silver_file_path, driver="GeoJSON")
 
 
 with DAG(
@@ -51,10 +51,6 @@ with DAG(
 
     earthquake_json_file_path = f"{local_bronze_path}/{earthquake_file_name}.json"
     earthquake_parquet_file_path = f"{local_silver_path}/{earthquake_file_name}.parquet"
-
-    countries_geojson_bronze_file_path = f"{local_bronze_path}/countries.geojson"
-    countries_details_bronze_file_path = f"{local_bronze_path}/countries_detail.csv"
-    countries_geojson_silver_file_path = f"{local_silver_path}/referential_{countries_geojson_file_name}"
 
     gcp_conn_id = os.environ["GCP_CONNECTION_ID"]
 
@@ -93,34 +89,9 @@ with DAG(
         gcp_conn_id=gcp_conn_id,
     )
 
-    # referential flow
-
-    merge_countries_and_details_save_locally_task = PythonOperator(
-        task_id="merge_countries_and_details_save_locally",
-        python_callable=merge_countries_and_details_save_locally,
-        op_kwargs=dict(
-            countries_geojson_bronze_file_path=countries_geojson_bronze_file_path,
-            countries_details_bronze_file_path=countries_details_bronze_file_path,
-            countries_geojson_silver_file_path=countries_geojson_silver_file_path,
-        ),
-    )
-
-    upload_local_referential_countries_file_to_gcs_task = LocalFilesystemToGCSOperator(
-        task_id="upload_local_referential_countries_file_to_gcs",
-        src=countries_geojson_silver_file_path,
-        dst=f"silver/referential/",
-        bucket=os.environ["BUCKET_NAME"],
-        gcp_conn_id=gcp_conn_id,
-    )
-
-
     wait_for_extract_task >> create_silver_folder_task
 
     # # earthquake flow orchestration
-    # create_silver_folder_task >> download_geojson_data_task
-    # download_geojson_data_task >> geojson_data_to_parquet_task
-    # geojson_data_to_parquet_task >> upload_local_earthquake_file_to_gcs_task
-
-    # referential flow orchestration
-
-    create_silver_folder_task >> merge_countries_and_details_save_locally_task >> upload_local_referential_countries_file_to_gcs_task
+    create_silver_folder_task >> download_geojson_data_task
+    download_geojson_data_task >> geojson_data_to_parquet_task
+    geojson_data_to_parquet_task >> upload_local_earthquake_file_to_gcs_task
