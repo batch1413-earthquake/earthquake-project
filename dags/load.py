@@ -1,6 +1,7 @@
 import os
 import json
 from datetime import datetime
+import numpy as np
 
 import pandas as pd
 
@@ -15,7 +16,10 @@ from airflow.providers.google.cloud.transfers.local_to_gcs import (
 AIRFLOW_HOME = os.getenv("AIRFLOW_HOME")
 FILE_PREFIX = "geojson_data"
 
-def split_coordinates(row: pd.Series):
+def clean_data(row: pd.Series):
+    row['properties_time'] = datetime.utcfromtimestamp(row['properties_time']/1000)
+    row['properties_updated'] = datetime.utcfromtimestamp(row['properties_updated']/1000)
+
     coordinates = row['geometry.coordinates']
     row['longitude'] = coordinates[0]
     row['latitude'] = coordinates[1]
@@ -38,7 +42,9 @@ def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
             'properties.type': 'properties_type',
             'properties.title': 'properties_title'}
         df.rename(columns=renaming, inplace=True)
-        df = df.apply(split_coordinates, axis='columns')
+        df["properties_felt_count"] = df["properties_felt_count"].replace(np.nan, 0).astype(int)
+        df["properties_seismic_station_count"] = df["properties_seismic_station_count"].replace(np.nan, 0).astype(int)
+        df = df.apply(clean_data, axis='columns')
         df[['type', 'id', 'properties_magnitude', 'properties_place',
             'properties_time', 'properties_updated',
             'properties_felt_count', 'properties_alert',

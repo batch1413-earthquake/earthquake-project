@@ -40,21 +40,21 @@ with DAG(
         table_id="earthquakes",
         schema_fields=[{'name': 'type', 'type': 'STRING'},
             {'name': 'id', 'type': 'STRING'},
-            {'name': 'properties_magnitude', 'type': 'FLOAT'},
+            {'name': 'properties_magnitude', 'type': 'FLOAT64'},
             {'name': 'properties_place', 'type': 'STRING'},
-            {'name': 'properties_time', 'type': 'DATETIME'},
-            {'name': 'properties_updated', 'type': 'DATETIME'},
+            {'name': 'properties_time', 'type': 'TIMESTAMP'},
+            {'name': 'properties_updated', 'type': 'TIMESTAMP'},
             {'name': 'properties_felt_count', 'type': 'INTEGER'},
             {'name': 'properties_alert', 'type': 'STRING'},
             {'name': 'properties_status', 'type': 'STRING'},
-            {'name': 'properties_tsunami', 'type': 'BOOLEAN'},
-            {'name': 'properties_significance', 'type': 'INTEGER'},
-            {'name': 'properties_seismic_station_count', 'type': 'INTEGER'},
+            {'name': 'properties_tsunami', 'type': 'INTEGER'},
+            {'name': 'properties_significance', 'type': 'INT64'},
+            {'name': 'properties_seismic_station_count', 'type': 'INT64'},
             {'name': 'properties_type', 'type': 'STRING'},
             {'name': 'properties_title', 'type': 'STRING'},
-            {'name': 'longitude', 'type': 'FLOAT'},
-            {'name': 'latitude', 'type': 'FLOAT'},
-            {'name': 'elevation', 'type': 'FLOAT'}]
+            {'name': 'longitude', 'type': 'FLOAT64'},
+            {'name': 'latitude', 'type': 'FLOAT64'},
+            {'name': 'elevation', 'type': 'FLOAT64'}]
     )
 
     create_dataset_task >> create_table_task

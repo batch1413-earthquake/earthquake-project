@@ -46,8 +46,10 @@ with DAG(
         task_id="load_to_bigquery",
         bucket=os.environ['SILVER_BUCKET_NAME'],
         source_objects=f"usgs_data/{file_name}.parquet",
+        source_format='parquet',
         destination_project_dataset_table="batch1413-earthquake.gold_earthquake_dataset.earthquakes",
-        gcp_conn_id="google_cloud_connection"
+        gcp_conn_id="google_cloud_connection",
+        write_disposition="WRITE_APPEND"
     )
 
     wait_for_big_query_creation_task >> wait_for_load_task >> load_to_bigquery_task
