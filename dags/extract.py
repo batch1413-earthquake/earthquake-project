@@ -1,7 +1,6 @@
 import os
 import requests
 import json
-import pandas as pd
 from datetime import datetime
 
 from airflow import DAG

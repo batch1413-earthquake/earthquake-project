@@ -3,8 +3,6 @@ import json
 from datetime import datetime
 
 import pandas as pd
-import geopandas as gpd
-
 
 from airflow import DAG
 from airflow.sensors.external_task import ExternalTaskSensor
@@ -20,21 +18,6 @@ FILE_PREFIX = "geojson_data"
 def geojson_data_to_parquet(json_file_path: str, parquet_file_path: str):
     with open(json_file_path, "r") as f:
         pd.json_normalize(json.load(f)["features"]).to_parquet(parquet_file_path, index=False)
-
-
-# def merge_countries_and_details_save_locally(
-#     countries_geojson_bronze_file_path: str,
-#     countries_details_bronze_file_path: str,
-#     countries_geojson_silver_file_path: str,
-# ):
-#     gdf = gpd.read_file(countries_geojson_bronze_file_path)
-#     df_detail = pd.read_csv(countries_details_bronze_file_path)
-#     gdf["ISO_A3"] = gdf["ISO_A3"].astype(str)
-#     df_detail['ISO_A3'] = df_detail['alpha-3'].astype(str)
-#     new_df = gdf.join(df_detail.set_index("ISO_A3"), on="ISO_A3")
-#     new_df["COUNTRY_NAME"] = new_df["ADMIN"]
-#     export = new_df[["COUNTRY_NAME", "ISO_A3", "geometry", "region", "sub-region"]]
-#     export.to_file(countries_geojson_silver_file_path, driver="GeoJSON")
 
 
 with DAG(

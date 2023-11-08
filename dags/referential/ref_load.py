@@ -52,9 +52,6 @@ with DAG(
     local_bronze_path = f"{AIRFLOW_HOME}/data/bronze"
     local_silver_path = f"{AIRFLOW_HOME}/data/silver"
 
-    earthquake_json_file_path = f"{local_bronze_path}/{earthquake_file_name}.json"
-    earthquake_parquet_file_path = f"{local_silver_path}/{earthquake_file_name}.parquet"
-
     countries_geojson_bronze_file_path = f"{local_bronze_path}/countries.geojson"
     countries_details_bronze_file_path = f"{local_bronze_path}/countries_detail.csv"
     countries_geojson_silver_file_path = f"{local_silver_path}/referential_{countries_geojson_file_name}"
