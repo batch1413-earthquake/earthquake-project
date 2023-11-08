@@ -69,7 +69,7 @@ with DAG(
     upload_local_earthquake_file_to_gcs_task = LocalFilesystemToGCSOperator(
         task_id="upload_local_earthquake_file_to_gcs",
         src=earthquake_json_file_path,
-        dst="bronze/usgs_data/",
+        dst="usgs_data/",
         bucket=os.environ["BUCKET_NAME"],
         gcp_conn_id=gcp_conn_id,
     )

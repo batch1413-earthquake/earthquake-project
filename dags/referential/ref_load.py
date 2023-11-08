@@ -85,8 +85,8 @@ with DAG(
     upload_local_referential_countries_file_to_gcs_task = LocalFilesystemToGCSOperator(
         task_id="upload_local_referential_countries_file_to_gcs",
         src=countries_geojson_silver_file_path,
-        dst=f"silver/referential/",
-        bucket=os.environ["BUCKET_NAME"],
+        dst=f"referential/",
+        bucket=os.environ["SILVER_BUCKET_NAME"],
         gcp_conn_id=gcp_conn_id,
     )
 

@@ -78,8 +78,6 @@ with DAG(
 
     create_silver_folder_task = BashOperator(task_id="create_silver_folder", bash_command=f"mkdir -p {local_silver_path}")
 
-    # earthquake flow
-
     download_geojson_data_task = GCSToLocalFilesystemOperator(
         task_id="download_geojson_data",
         object_name=f"usgs_data/{earthquake_json_file_path.split('/')[-1]}",
@@ -97,14 +95,13 @@ with DAG(
     upload_local_earthquake_file_to_gcs_task = LocalFilesystemToGCSOperator(
         task_id="upload_local_earthquake_file_to_gcs",
         src=earthquake_parquet_file_path,
-        dst=f"usgs_data/",
+        dst="usgs_data/",
         bucket=os.environ["SILVER_BUCKET_NAME"],
         gcp_conn_id=gcp_conn_id
     )
 
     wait_for_extract_task >> create_silver_folder_task
 
-    # # earthquake flow orchestration
     create_silver_folder_task >> download_geojson_data_task
     download_geojson_data_task >> geojson_data_to_parquet_task
     geojson_data_to_parquet_task >> upload_local_earthquake_file_to_gcs_task
