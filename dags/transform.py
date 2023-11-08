@@ -33,15 +33,6 @@ with DAG(
         poke_interval=10
     )
 
-    wait_for_big_query_creation_task = ExternalTaskSensor(
-        task_id="big_query_sensor",
-        external_dag_id='create_big_query_dataset',
-        external_task_id='create_table',
-        timeout=600,
-        allowed_states=['success'],
-        poke_interval=10
-    )
-
     load_to_bigquery_task = GCSToBigQueryOperator(
         task_id="load_to_bigquery",
         bucket=os.environ['SILVER_BUCKET_NAME'],
@@ -49,7 +40,7 @@ with DAG(
         source_format='parquet',
         destination_project_dataset_table="batch1413-earthquake.gold_earthquake_dataset.earthquakes",
         gcp_conn_id="google_cloud_connection",
-        write_disposition="WRITE_APPEND"
+        write_disposition="WRITE_APPEND",
     )
 
-    wait_for_big_query_creation_task >> wait_for_load_task >> load_to_bigquery_task
+    wait_for_load_task >> load_to_bigquery_task
