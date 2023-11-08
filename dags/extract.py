@@ -53,8 +53,6 @@ with DAG(
 ) as dag:
     date_str = "{{ yesterday_ds }}"
     earthquake_json_file_path = f"{AIRFLOW_HOME}/data/{FILE_PREFIX}_{date_str}.json"
-    countries_json_file_path = f"{AIRFLOW_HOME}/data/bronze/countries.geojson"
-    countries_detail_json_file_path = f"{AIRFLOW_HOME}/data/bronze/countries_detail.csv"
 
     gcp_conn_id = os.environ["GCP_CONNECTION_ID"]
 
@@ -71,24 +69,8 @@ with DAG(
     upload_local_earthquake_file_to_gcs_task = LocalFilesystemToGCSOperator(
         task_id="upload_local_earthquake_file_to_gcs",
         src=earthquake_json_file_path,
-        dst="bronze/usgs_data/",
-        bucket=os.environ["BUCKET_NAME"],
-        gcp_conn_id=gcp_conn_id,
-    )
-
-    upload_local_country_geojson_file_to_gcs_task = LocalFilesystemToGCSOperator(
-        task_id="upload_local_country_geojson_file_to_gcs",
-        src=countries_json_file_path,
-        dst="bronze/referential/",
-        bucket=os.environ["BUCKET_NAME"],
-        gcp_conn_id=gcp_conn_id,
-    )
-
-    upload_local_country_detail_file_to_gcs_task = LocalFilesystemToGCSOperator(
-        task_id="upload_local_country_detail_file_to_gcs",
-        src=countries_detail_json_file_path,
-        dst="bronze/referential/",
-        bucket=os.environ["BUCKET_NAME"],
+        dst="usgs_data/",
+        bucket=os.environ["BRONZE_BUCKET_NAME"],
         gcp_conn_id=gcp_conn_id,
     )
 

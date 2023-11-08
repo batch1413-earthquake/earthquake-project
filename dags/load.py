@@ -1,6 +1,7 @@
 import os
 import json
 from datetime import datetime
+import numpy as np
 
 import pandas as pd
 
@@ -14,11 +15,42 @@ from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesyste
 AIRFLOW_HOME = os.getenv("AIRFLOW_HOME")
 FILE_PREFIX = "geojson_data"
 
+def clean_data(row: pd.Series):
+    row['properties_time'] = datetime.utcfromtimestamp(row['properties_time']/1000)
+    row['properties_updated'] = datetime.utcfromtimestamp(row['properties_updated']/1000)
 
-def geojson_data_to_parquet(json_file_path: str, parquet_file_path: str):
+    coordinates = row['geometry.coordinates']
+    row['longitude'] = coordinates[0]
+    row['latitude'] = coordinates[1]
+    row['elevation'] = coordinates[2]
+    return row
+
+def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
     with open(json_file_path, "r") as f:
-        pd.json_normalize(json.load(f)["features"]).to_parquet(parquet_file_path, index=False)
-
+        df = pd.json_normalize(json.load(f)["features"])
+        renaming = {'properties.mag': 'properties_magnitude',
+            'properties.place': 'properties_place',
+            'properties.time': 'properties_time',
+            'properties.updated': 'properties_updated',
+            'properties.felt': 'properties_felt_count',
+            'properties.alert': 'properties_alert',
+            'properties.status': 'properties_status',
+            'properties.tsunami': 'properties_tsunami',
+            'properties.sig': 'properties_significance',
+            'properties.nst': 'properties_seismic_station_count',
+            'properties.type': 'properties_type',
+            'properties.title': 'properties_title'}
+        df.rename(columns=renaming, inplace=True)
+        df["properties_felt_count"] = df["properties_felt_count"].astype("Int64")
+        df["properties_seismic_station_count"] = df["properties_seismic_station_count"].astype("Int64")
+        df = df.apply(clean_data, axis='columns')
+        df[['id', 'properties_magnitude', 'properties_place',
+            'properties_time', 'properties_updated',
+            'properties_felt_count', 'properties_alert',
+            'properties_status', 'properties_tsunami',
+            'properties_significance', 'properties_seismic_station_count',
+            'properties_type', 'properties_title', 'longitude', 'latitude', 'elevation']] \
+            .to_parquet(parquet_file_path, index=False)
 
 with DAG(
     "load", default_args={"depends_on_past": False}, start_date=datetime(2023, 1, 1), end_date=datetime(2024, 1, 1), schedule_interval="@monthly", catchup=True
@@ -26,8 +58,6 @@ with DAG(
     date_str = "{{ yesterday_ds }}"
 
     earthquake_file_name = f"{FILE_PREFIX}_{date_str}"
-    countries_geojson_file_name = "countries.geojson"
-    countries_details_file_name = "countries_detail.csv"
 
     local_bronze_path = f"{AIRFLOW_HOME}/data/bronze"
     local_silver_path = f"{AIRFLOW_HOME}/data/silver"
@@ -48,14 +78,12 @@ with DAG(
 
     create_silver_folder_task = BashOperator(task_id="create_silver_folder", bash_command=f"mkdir -p {local_silver_path}")
 
-    # earthquake flow
-
     download_geojson_data_task = GCSToLocalFilesystemOperator(
         task_id="download_geojson_data",
-        object_name=f"bronze/usgs_data/{earthquake_json_file_path.split('/')[-1]}",
-        bucket=os.environ["BUCKET_NAME"],
+        object_name=f"usgs_data/{earthquake_json_file_path.split('/')[-1]}",
+        bucket=os.environ["BRONZE_BUCKET_NAME"],
         filename=earthquake_json_file_path,
-        gcp_conn_id=gcp_conn_id,
+        gcp_conn_id=gcp_conn_id
     )
 
     geojson_data_to_parquet_task = PythonOperator(
@@ -67,14 +95,13 @@ with DAG(
     upload_local_earthquake_file_to_gcs_task = LocalFilesystemToGCSOperator(
         task_id="upload_local_earthquake_file_to_gcs",
         src=earthquake_parquet_file_path,
-        dst=f"silver/usgs_data/",
-        bucket=os.environ["BUCKET_NAME"],
-        gcp_conn_id=gcp_conn_id,
+        dst="usgs_data/",
+        bucket=os.environ["SILVER_BUCKET_NAME"],
+        gcp_conn_id=gcp_conn_id
     )
 
     wait_for_extract_task >> create_silver_folder_task
 
-    # # earthquake flow orchestration
     create_silver_folder_task >> download_geojson_data_task
     download_geojson_data_task >> geojson_data_to_parquet_task
     geojson_data_to_parquet_task >> upload_local_earthquake_file_to_gcs_task
