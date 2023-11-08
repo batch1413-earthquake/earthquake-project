@@ -27,7 +27,7 @@ with DAG(
     wait_for_load_task = ExternalTaskSensor(
         task_id="load_sensor",
         external_dag_id='load',
-        external_task_id='upload_local_file_to_gcs',
+        external_task_id='upload_local_earthquake_file_to_gcs',
         timeout=600,
         allowed_states=['success'],
         poke_interval=10
