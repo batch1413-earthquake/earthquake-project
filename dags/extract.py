@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+import pandas as pd
 from datetime import datetime
 
 from airflow import DAG
@@ -19,7 +20,6 @@ COUNTRIES_DETAIL_GEOJSON = "https://raw.githubusercontent.com/datasets/country-c
 def call_api(url, query_params):
     try:
         response = requests.get(url, params=query_params)
-
         json_data = {}
         if response.status_code in [200, 204]:
             json_data = response.json()
@@ -31,11 +31,9 @@ def call_api(url, query_params):
 
     return json_data
 
-
 def save_file_locally(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f)
-
 
 def extract_geojson_data(date_str: str, json_file_path: str):
     date = datetime.strptime(date_str, "%Y-%m-%d")
@@ -55,9 +53,8 @@ def extract_geojson_countries(json_file_path):
 
 
 def extract_detail_countries(json_file_path):
-    data = call_api(COUNTRIES_DETAIL_GEOJSON, {})
-    save_file_locally(json_file_path, data)
-
+    df = pd.read_csv(COUNTRIES_DETAIL_GEOJSON)
+    df.to_csv(json_file_path)
 
 with DAG(
     "extract",
@@ -69,8 +66,8 @@ with DAG(
 ) as dag:
     date_str = "{{ yesterday_ds }}"
     earthquake_json_file_path = f"{AIRFLOW_HOME}/data/{FILE_PREFIX}_{date_str}.json"
-    countries_json_file_path = f"{AIRFLOW_HOME}/data/countries.geojson"
-    countries_detail_json_file_path = f"{AIRFLOW_HOME}/data/countries_detail.csv"
+    countries_json_file_path = f"{AIRFLOW_HOME}/data/bronze/countries.geojson"
+    countries_detail_json_file_path = f"{AIRFLOW_HOME}/data/bronze/countries_detail.csv"
 
     gcp_conn_id = os.environ["GCP_CONNECTION_ID"]
 
