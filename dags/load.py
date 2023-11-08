@@ -15,9 +15,30 @@ from airflow.providers.google.cloud.transfers.local_to_gcs import (
 AIRFLOW_HOME = os.getenv("AIRFLOW_HOME")
 FILE_PREFIX = "geojson_data"
 
+def split_coordinates(row: pd.Series):
+    coordinates = row['geometry.coordinates']
+    row['longitude'] = coordinates[0]
+    row['latitude'] = coordinates[1]
+    row['elevation'] = coordinates[2]
+    return row
+
 def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
     with open(json_file_path, "r") as f:
-        pd.json_normalize(json.load(f)["features"])\
+        df = pd.json_normalize(json.load(f)["features"])
+        renaming = {'properties.mag': 'properties_magnitude',
+            'properties.place':  'properties_place',
+            'properties.time':  'properties_time',
+            'properties.updated':  'properties_updated',
+            'properties.felt':  'properties_felt_count',
+            'properties.alert':  'properties_alert',
+            'properties.status':  'properties_status',
+            'properties.tsunami':  'properties_tsunami',
+            'properties.sig':  'properties_significance',
+            'properties.nst':  'properties_seismic_station_count',
+            'properties.type':  'properties_type',
+            'properties.title':  'properties_title'}
+        df.rename(columns=renaming, inplace=True)
+        df.apply(split_coordinates, axis='columns')\
             .to_parquet(parquet_file_path, index=False)
 
 with DAG(
