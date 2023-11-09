@@ -100,15 +100,11 @@ def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
             .to_parquet(parquet_file_path, index=False)
 
 
-start_year = 1700
-end_year = 1705
-
 with DAG(
-    "load_1990_2007",
+    "load_november",
     default_args={"depends_on_past": False},
-    start_date=datetime(1990, 1, 1),
-    end_date=datetime(2007, 12, 1),
-    schedule_interval="@monthly",
+    start_date=datetime(2023, 11, 2),
+    schedule_interval="@once",
     catchup=True
 ) as dag:
     date_str = "{{ yesterday_ds }}"
@@ -125,7 +121,7 @@ with DAG(
 
     wait_for_extract_task = ExternalTaskSensor(
         task_id="extract_sensor",
-        external_dag_id="extract_1990_2007",
+        external_dag_id="extract_november",
         external_task_id="upload_local_earthquake_file_to_gcs",
         timeout=600,
         allowed_states=["success"],

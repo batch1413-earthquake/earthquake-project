@@ -35,7 +35,7 @@ def extract_geojson_data(date_str: str, json_file_path: str):
     date = datetime.strptime(date_str, "%Y-%m-%d")
     query_params = {
         "starttime": date.replace(day=1),
-        "endtime": date,
+        "endtime": date.replace(day=30),
         "format": "geojson",
         "limit": 20000
     }
@@ -45,11 +45,10 @@ def extract_geojson_data(date_str: str, json_file_path: str):
 
 
 with DAG(
-    "extract_1990_2007",
+    "extract_november",
     default_args={"depends_on_past": True},
-    start_date=datetime(1990, 1, 1),
-    end_date=datetime(2007, 12, 1),
-    schedule_interval="@monthly",
+    start_date=datetime(2023, 11, 2),
+    schedule_interval="@once",
     catchup=True,
 ) as dag:
     date_str = "{{ yesterday_ds }}"
