@@ -15,19 +15,10 @@ from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesyste
 AIRFLOW_HOME = os.getenv("AIRFLOW_HOME")
 FILE_PREFIX = "geojson_data"
 
-def clean_data(row: pd.Series):
-    row['properties_time'] = datetime.utcfromtimestamp(row['properties_time']/1000)
-    row['properties_updated'] = datetime.utcfromtimestamp(row['properties_updated']/1000)
-
-    coordinates = row['geometry.coordinates']
-    row['longitude'] = coordinates[0]
-    row['latitude'] = coordinates[1]
-    row['elevation'] = coordinates[2]
-    return row
-
 def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
     with open(json_file_path, "r") as f:
-        df = pd.json_normalize(json.load(f)["features"])
+        json_data = json.load(f)
+        df = pd.json_normalize(json_data["features"])
         renaming = {'properties.mag': 'properties_magnitude',
             'properties.place': 'properties_place',
             'properties.time': 'properties_time',
@@ -43,7 +34,11 @@ def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
         df.rename(columns=renaming, inplace=True)
         df["properties_felt_count"] = df["properties_felt_count"].astype("Int64")
         df["properties_seismic_station_count"] = df["properties_seismic_station_count"].astype("Int64")
-        df = df.apply(clean_data, axis='columns')
+        df["properties_time"] = df["properties_time"].astype('datetime64[ms]')
+        df['properties_updated'] = df['properties_updated'].astype('datetime64[ms]')
+
+        df = pd.concat([df, pd.DataFrame(df["geometry.coordinates"].tolist(), columns=["longitude", "latitude", "elevation"])], axis=1)
+
         df[['id', 'properties_magnitude', 'properties_place',
             'properties_time', 'properties_updated',
             'properties_felt_count', 'properties_alert',
@@ -53,7 +48,12 @@ def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
             .to_parquet(parquet_file_path, index=False)
 
 with DAG(
-    "load", default_args={"depends_on_past": False}, start_date=datetime(2023, 1, 1), end_date=datetime(2024, 1, 1), schedule_interval="@monthly", catchup=True
+    "load_2015_2019",
+    default_args={"depends_on_past": False},
+    start_date=datetime(2015, 1, 1),
+    end_date=datetime(2019, 12, 1),
+    schedule_interval="@monthly",
+    catchup=True
 ) as dag:
     date_str = "{{ yesterday_ds }}"
 

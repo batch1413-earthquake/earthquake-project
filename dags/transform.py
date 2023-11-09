@@ -14,7 +14,7 @@ FILE_PREFIX = "geojson_data"
 with DAG(
     "fill_gold_table_in_big_query",
     default_args={"depends_on_past": True},
-    start_date=datetime(2023, 1, 1),
+    start_date=datetime(2020, 1, 1),
     end_date=datetime(2024, 1, 1),
     schedule_interval="@monthly",
     catchup=True
