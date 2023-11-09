@@ -6,10 +6,6 @@ ENV PYTHONUNBUFFERED 1
 
 ENV AIRFLOW_HOME=/app/airflow
 
-# Install curl and mysql that will be needed for our tests
-RUN apt-get update && apt-get install -y curl \
-  gcc default-mysql-server default-libmysqlclient-dev
-
 WORKDIR $AIRFLOW_HOME
 
 COPY scripts scripts
