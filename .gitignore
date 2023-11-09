@@ -165,3 +165,4 @@ data/
 logs/
 notebooks/*.json
 notebooks/*.parquet
+notebooks/*.csv
