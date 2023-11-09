@@ -1,0 +1,3 @@
+metabase_sql_password = "abc123"
+project_id            = "batch1413-earthquake"
+cluster_name          = "metabase"
