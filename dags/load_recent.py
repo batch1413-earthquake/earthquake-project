@@ -103,7 +103,7 @@ def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
 with DAG(
     "load_november",
     default_args={"depends_on_past": False},
-    start_date=datetime(2023, 11, 2),
+    start_date=datetime(2023, 11, 10, 14, 22),
     schedule_interval="@once",
     catchup=True
 ) as dag:

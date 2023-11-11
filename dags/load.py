@@ -20,7 +20,6 @@ def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
         json_data = json.load(f)
         df = pd.json_normalize(json_data["features"])
 
-
         renaming = {'properties.mag': 'properties_magnitude',
             'properties.place': 'properties_place',
             'properties.time': 'properties_time',
@@ -76,6 +75,7 @@ def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
         df["properties_place"] = df["properties_place"].astype("string")
         df["properties_status"] = df["properties_status"].astype("string")
         df["properties_type"] = df["properties_type"].astype("string")
+        df["properties_magnitude"] = df["properties_magnitude"].astype("float")
 
         if "geometry.coordinates" in df.columns:
             df = pd.concat([df, pd.DataFrame(df["geometry.coordinates"].tolist(), columns=["longitude", "latitude", "elevation"])], axis=1)
@@ -100,14 +100,11 @@ def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
             .to_parquet(parquet_file_path, index=False)
 
 
-start_year = 1700
-end_year = 1705
-
 with DAG(
-    "load_1990_2007",
+    "load",
     default_args={"depends_on_past": False},
-    start_date=datetime(1990, 1, 1),
-    end_date=datetime(2007, 12, 1),
+    start_date=datetime(1900, 1, 1),
+    end_date=datetime(1949, 12, 1),
     schedule_interval="@monthly",
     catchup=True
 ) as dag:
@@ -125,7 +122,7 @@ with DAG(
 
     wait_for_extract_task = ExternalTaskSensor(
         task_id="extract_sensor",
-        external_dag_id="extract_1990_2007",
+        external_dag_id="extract",
         external_task_id="upload_local_earthquake_file_to_gcs",
         timeout=600,
         allowed_states=["success"],

@@ -45,10 +45,10 @@ def extract_geojson_data(date_str: str, json_file_path: str):
 
 
 with DAG(
-    "extract_1990_2007",
+    "extract",
     default_args={"depends_on_past": True},
-    start_date=datetime(1990, 1, 1),
-    end_date=datetime(2007, 12, 1),
+    start_date=datetime(1900, 1, 1),
+    end_date=datetime(1949, 12, 1),
     schedule_interval="@monthly",
     catchup=True,
 ) as dag:

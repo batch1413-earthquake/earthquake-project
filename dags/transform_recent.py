@@ -16,7 +16,7 @@ FILE_PREFIX = "geojson_data"
 with DAG(
     "transform_november",
     default_args={"depends_on_past": True},
-    start_date=datetime(2023, 11, 2),
+    start_date=datetime(2023, 11, 10, 14, 22),
     schedule_interval="@once",
     catchup=True
 ) as dag:
