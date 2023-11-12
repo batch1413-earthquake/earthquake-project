@@ -36,13 +36,19 @@ We used USGS api to gather all the data needed.
 
 ![](images/stack.png)
 
-### ELT
+### ELT (Extract|Load|Transform)
 
 ![](images/elt.png)
+
+- **E**:Extract data from USGS and upload it as bronze
+- **L**:Load data and clean it as silver
+- **T**:Transform data to Google BigQuery as gold
 
 ### PUB/SUB
 
 ![](images/pub_sub.png)
+
+> The Gmail alerting has not been yet been developed
 
 ### Metabase dashboard
 
