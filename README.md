@@ -52,7 +52,7 @@ We used USGS api to gather all the data needed.
 
 ### Metabase dashboard
 
-#### All seismic events since 1949
+#### All seismic events since december 1949
 
 ![](images/all_seismic_events.png)
 
