@@ -165,6 +165,7 @@ data/
 logs/
 notebooks/*.json
 notebooks/*.parquet
+notebooks/*.csv
 
 # macOS files
 .DS_Store

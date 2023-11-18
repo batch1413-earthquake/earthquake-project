@@ -37,6 +37,7 @@ def extract_geojson_data(date_str: str, json_file_path: str):
         "starttime": date.replace(day=1),
         "endtime": date,
         "format": "geojson",
+        "limit": 20000
     }
 
     data = call_api(API_URL, query_params)
@@ -45,8 +46,8 @@ def extract_geojson_data(date_str: str, json_file_path: str):
 
 with DAG(
     "extract",
-    default_args={"depends_on_past": False},
-    start_date=datetime(2023, 1, 1),
+    default_args={"depends_on_past": True},
+    start_date=datetime(1949, 1, 1),
     end_date=datetime(2024, 1, 1),
     schedule_interval="@monthly",
     catchup=True,
