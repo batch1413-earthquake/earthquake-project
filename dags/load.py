@@ -1,8 +1,6 @@
 import os
 import json
 from datetime import datetime
-import numpy as np
-
 import pandas as pd
 
 from airflow import DAG
@@ -103,8 +101,8 @@ def geojson_data_to_parquet(json_file_path: str, parquet_file_path:str):
 with DAG(
     "load",
     default_args={"depends_on_past": False},
-    start_date=datetime(1900, 1, 1),
-    end_date=datetime(1949, 12, 1),
+    start_date=datetime(1949, 1, 1),
+    end_date=datetime(2023, 1, 1),
     schedule_interval="@monthly",
     catchup=True
 ) as dag:

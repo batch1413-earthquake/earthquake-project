@@ -26,8 +26,8 @@ def should_upload_to_big_query(parquet_file_path):
 with DAG(
     "transform",
     default_args={"depends_on_past": True},
-    start_date=datetime(1900, 1, 1),
-    end_date=datetime(1949, 12, 1),
+    start_date=datetime(1949, 1, 1),
+    end_date=datetime(2023, 1, 1),
     schedule_interval="@monthly",
     catchup=True
 ) as dag:
