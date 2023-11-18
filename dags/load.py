@@ -102,7 +102,7 @@ with DAG(
     "load",
     default_args={"depends_on_past": False},
     start_date=datetime(1949, 1, 1),
-    end_date=datetime(2023, 1, 1),
+    end_date=datetime(2024, 1, 1),
     schedule_interval="@monthly",
     catchup=True
 ) as dag:
