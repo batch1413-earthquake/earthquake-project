@@ -1,111 +1,73 @@
 import os
 from datetime import datetime
 
+import pandas as pd
+
 from airflow import DAG
 
-
-# $IMPORT_BEGIN
-# noreorder
-import pandas as pandas
-from airflow.operators.python import PythonOperator
-from airflow.operators.python_operator import BranchPythonOperator
-from airflow.sensors.external_task import ExternalTaskSensor
 from airflow.operators.empty import EmptyOperator
-from airflow.utils.trigger_rule import TriggerRule
+from airflow.sensors.external_task import ExternalTaskSensor
+
+from airflow.operators.python import BranchPythonOperator
+
+from airflow.providers.google.cloud.transfers.gcs_to_bigquery import (
+    GCSToBigQueryOperator)
 
 AIRFLOW_HOME = os.getenv("AIRFLOW_HOME")
+FILE_PREFIX = "geojson_data"
 
-
-def is_month_odd(date: str) -> str:
-    """
-    date: formatted as YYYY-MM.
-    Returns "filter_expensive_trips" if the month date is even, "filter_long_trips" otherwise.
-    """
-    return "filter_expensive_trips" if int(date[-2:]) % 2 == 0 else "filter_long_trips"
-
-
-def prepare_data(bronze_file: str, date: str):
-    """
-    - Converts data from `bronze_file` to DataFrame  using pandas
-    - Adds a new column named 'date' that stores the current month (should be formatted as YYYY-MM)
-    - Keeps only the ["date", "trip_distance" and "total_amount"] columns, in that order
-    - Returns the DataFrame
-    """
-    data_frame = pandas.read_parquet(path=bronze_file, columns=["trip_distance", "total_amount"])
-    data_frame.insert(0, 'date', date)
-    return data_frame
-
-
-def filter_long_trips(
-    bronze_file: str, silver_file: str, date: str, distance: int
-) -> None:
-    """
-    - Calls prepare_data to get a cleaned DataFrame
-    - Keep only rows for which the trip_distance's value is greater than `distance`
-    - Saves the DataFrame to `silver_file` without keeping the DataFrame indexes
-    """
-    og_data_frame = prepare_data(bronze_file=bronze_file, date=date)
-    filtered_data_frame = og_data_frame[og_data_frame['trip_distance'] > distance]
-    filtered_data_frame.to_csv(path_or_buf=silver_file, index=False)
-
-
-def filter_expensive_trips(
-    bronze_file: str, silver_file: str, date: str, amount: int
-) -> None:
-    """
-    - Calls prepare_data to get a cleaned DataFrame
-    - Keep only rows for which the total_amount's value is greater than `amount`
-    - Saves the DataFrame to `silver_file` without keeping the DataFrame indexes
-    """
-    og_data_frame = prepare_data(bronze_file=bronze_file, date=date)
-    filtered_data_frame = og_data_frame[og_data_frame['total_amount'] > amount]
-    filtered_data_frame.to_csv(path_or_buf=silver_file, index=False)
+def should_upload_to_big_query(parquet_file_path):
+    if len(pd.read_parquet(parquet_file_path)) > 0:
+        return "load_to_bigquery"
+    else:
+        return "do_not_need"
 
 
 with DAG(
     "transform",
     default_args={"depends_on_past": True},
-    start_date=datetime(2021, 6, 1),
-    end_date=datetime(2021, 12, 31),
+    start_date=datetime(1949, 1, 1),
+    end_date=datetime(2024, 1, 1),
     schedule_interval="@monthly",
+    catchup=True
 ) as dag:
-    date = "{{ ds[:7] }}"
-    bronze_file = f"{AIRFLOW_HOME}/data/bronze/yellow_tripdata_{date}.parquet"
-    silver_file = f"{AIRFLOW_HOME}/data/silver/yellow_tripdata_{date}.csv"
 
-    wait_for_extract = ExternalTaskSensor(
-        task_id="extract_sensor",
-        external_dag_id='extract',
-        poke_interval=10,
+    date_str = "{{ yesterday_ds }}"
+
+    earthquake_file_name = f"{FILE_PREFIX}_{date_str}"
+
+    local_silver_path = f"{AIRFLOW_HOME}/data/silver"
+
+    earthquake_parquet_file_path = f"{local_silver_path}/{earthquake_file_name}.parquet"
+
+    wait_for_load_task = ExternalTaskSensor(
+        task_id="load_sensor",
+        external_dag_id='load',
+        external_task_id='upload_local_earthquake_file_to_gcs',
         timeout=600,
-        allowed_states=['success']
+        allowed_states=['success'],
+        poke_interval=10
     )
 
-    is_month_odd_task = BranchPythonOperator(
-        task_id="is_month_odd",
-        python_callable=is_month_odd,
-        op_kwargs={'date': date},
+    should_upload_to_big_query_task = BranchPythonOperator(
+        task_id='should_upload_to_big_query',
+        python_callable=should_upload_to_big_query,
+        op_kwargs={"parquet_file_path": earthquake_parquet_file_path}
     )
 
-    filter_params = {"bronze_file": bronze_file, "silver_file": silver_file, "date": date}
+    do_not_need_task = EmptyOperator(task_id="do_not_need")
 
-    filter_long_trips_task = PythonOperator(
-        task_id="filter_long_trips",
-        python_callable=filter_long_trips,
-        op_kwargs={**filter_params, **{'distance': 150}},
+
+    load_to_bigquery_task = GCSToBigQueryOperator(
+        task_id="load_to_bigquery",
+        bucket=os.environ['SILVER_BUCKET_NAME'],
+        source_objects=f"usgs_data/{earthquake_file_name}.parquet",
+        source_format='parquet',
+        destination_project_dataset_table="batch1413-earthquake.gold_earthquake_dataset.earthquakes",
+        gcp_conn_id="google_cloud_connection",
+        write_disposition="WRITE_APPEND",
+        max_bad_records=1,
+        ignore_unknown_values=True,
     )
 
-    filter_expensive_trips_task = PythonOperator(
-        task_id="filter_expensive_trips",
-        python_callable=filter_expensive_trips,
-        op_kwargs={**filter_params, **{'amount': 500}},
-    )
-
-    end_task = EmptyOperator(
-        task_id="end",
-        trigger_rule=TriggerRule.ONE_SUCCESS,
-    )
-
-    wait_for_extract >> is_month_odd_task
-    is_month_odd_task >> filter_expensive_trips_task >> end_task
-    is_month_odd_task >> filter_long_trips_task >> end_task
+    wait_for_load_task >> should_upload_to_big_query_task >> [load_to_bigquery_task, do_not_need_task]
