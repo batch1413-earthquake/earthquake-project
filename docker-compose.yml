@@ -70,3 +70,17 @@ services:
             retries: 3
         tty: true
         stdin_open: true
+
+    metabase:
+        image: metabase/metabase
+        container_name: metabase
+        restart: always
+        environment:
+            MB_DB_PORT: 443
+        volumes:
+            - metabase_data:/metabase-data
+        ports:
+            - 3000:3000
+
+volumes:
+  metabase_data:
