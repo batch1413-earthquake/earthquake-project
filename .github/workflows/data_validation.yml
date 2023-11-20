@@ -22,16 +22,15 @@ jobs:
         poetry install
         poetry add great-expectations
         poetry add sqlalchemy-bigquery
+    - name: Install jq
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+
     - name: Setup GCP Credentials
       run: |
-        echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > gcp_key.json
+        echo '${{ secrets.GCP_SA_KEY }}' | jq . > gcp_key.json
         echo "Created GCP Key File"
-
-    - name: Check JSON File Format
-      run: |
-        head -c 1 gcp_key.json && echo
-        tail -c 1 gcp_key.json && echo
-
     - name: Validate JSON File with Python
       run: |
         python -c "import json; json.load(open('gcp_key.json'))"
