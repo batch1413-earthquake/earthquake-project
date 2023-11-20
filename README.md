@@ -42,25 +42,27 @@ We extracted the data from the USGS api on seismic events.
 
 - **E**:Extract data from USGS and upload to our bronze layer
 
-<details open>
+<details>
 <summary>Extract dag</summary>
 <br>
 
 ![](images/extract.png)
 </details>
+<br>
 
 - **L**:Load data and clean it to store it in our silver layer
 
-<details open>
+<details>
 <summary>Load dag</summary>
 <br>
 
 ![](images/load.png)
 </details>
+<br>
 
 - **T**:Transform data to upload it to our gold layer on Google BigQuery
 
-<details open>
+<details>
 <summary>Transform dag</summary>
 <br>
 
