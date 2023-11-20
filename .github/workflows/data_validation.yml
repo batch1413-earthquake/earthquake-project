@@ -26,6 +26,16 @@ jobs:
       run: |
         echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > gcp_key.json
         echo "Created GCP Key File"
+
+    - name: Check JSON File Format
+      run: |
+        head -c 1 gcp_key.json && echo
+        tail -c 1 gcp_key.json && echo
+
+    - name: Validate JSON File with Python
+      run: |
+        python -c "import json; json.load(open('gcp_key.json'))"
+
     - name: Run Data Validation
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp_key.json
