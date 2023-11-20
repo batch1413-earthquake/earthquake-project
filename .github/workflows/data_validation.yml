@@ -21,6 +21,7 @@ jobs:
         pip install poetry
         poetry install
         poetry add great-expectations
+        poetry add sqlalchemy-bigquery
 
     - name: Run great expectations tests
       run: |
