@@ -23,14 +23,10 @@ jobs:
         poetry add great-expectations
         poetry add sqlalchemy-bigquery
     - name: Setup GCP Credentials
-        env:
-          GCP_SA_KEY: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
         run: |
-          echo "$GCP_SA_KEY" > gcp_key.json
+          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > gcp_key.json
           echo "Created GCP Key File"
         # This step creates a file named gcp_key.json with your service account key
     - name: Run Data Validation
-      env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp_key.json
       run: |
         poetry run python dags/expectations.py
