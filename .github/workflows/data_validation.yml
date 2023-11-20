@@ -22,6 +22,6 @@ jobs:
         poetry install
         poetry add great-expectations
 
-    - name: Run great expecatation
+    - name: Run great expectations tests
       run: |
-        poetry run dags/expectations.py
+        poetry run python dags/expectations.py
