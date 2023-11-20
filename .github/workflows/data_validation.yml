@@ -40,5 +40,5 @@ jobs:
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp_key.json
       run: |
-        cat  ${{ github.workspace }}/gcp_key.json
+        echo '${{ GOOGLE_APPLICATION_CREDENTIALS }}'
         poetry run python dags/expectations.py
