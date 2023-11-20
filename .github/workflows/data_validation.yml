@@ -29,7 +29,7 @@ jobs:
 
     - name: Setup GCP Credentials
       run: |
-        echo '${{ secrets.GCP_SA_KEY }}' | jq . > ${{ github.workspace }}/gcp_key.json
+        echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}' > ${{ github.workspace }}/gcp_key.json
         echo "Created GCP Key File"
 
     - name: Validate JSON File
