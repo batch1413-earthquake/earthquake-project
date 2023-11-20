@@ -29,11 +29,12 @@ jobs:
 
     - name: Setup GCP Credentials
       run: |
-        echo '${{ secrets.GCP_SA_KEY }}' | jq . > gcp_key.json
+        echo '${{ secrets.GCP_SA_KEY }}' | jq . > ${{ github.workspace }}/gcp_key.json
         echo "Created GCP Key File"
-    - name: Validate JSON File with Python
+
+    - name: Validate JSON File
       run: |
-        python -c "import json; json.load(open('gcp_key.json'))"
+        jq empty ${{ github.workspace }}/gcp_key.json
 
     - name: Run Data Validation
       env:
