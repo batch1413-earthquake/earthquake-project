@@ -27,5 +27,7 @@ jobs:
         echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > gcp_key.json
         echo "Created GCP Key File"
     - name: Run Data Validation
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp_key.json
       run: |
         poetry run python dags/expectations.py
