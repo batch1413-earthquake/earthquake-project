@@ -22,9 +22,7 @@ def run_expectations():
 
     Returns:
     -------
-    True : if all our test are correct
-    False : if one of our test is failing
-
+       None: The function raises an exception if any test fails.
     """
 
     context = gx.get_context()
@@ -38,6 +36,9 @@ def run_expectations():
     )
     validator.head()
     validator.expect_column_values_to_not_be_null(column="id")
+    validator.expect_column_values_to_be_between(column="latitude", min_value=-90, max_value=90)
+    validator.expect_column_values_to_be_between(column="longitude", min_value=-180, max_value=180)
+    validator.expect_column_values_to_be_between(column="properties_magnitude", min_value=0, max_value=10)
     validator.save_expectation_suite(discard_failed_expectations=False)
 
     checkpoint = context.add_or_update_checkpoint(
@@ -48,9 +49,7 @@ def run_expectations():
 
     for expectation_result in next(iter(checkpoint_result["run_results"].values()))["validation_result"]["results"]:
         if not expectation_result["success"]:
-            return False
-
-    return True
+            raise Exception("Data validation failed.")
 
 
 if __name__ == "__main__":
