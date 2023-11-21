@@ -1,0 +1,44 @@
+name: Great Expecation CI
+on:
+  push:
+    branches: [ great-expectation, master, main ]
+  pull_request:
+    branches: [ great-expectation,  master, main ]
+jobs:
+  build-and-run-pytest:
+    runs-on: ubuntu-latest
+    steps:
+    # First step (unnamed here) is to checkout to the branch that triggered the event
+    - uses: actions/checkout@v3
+    # Second step: install python 3.8
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.8"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+        poetry install
+        poetry add great-expectations
+        poetry add sqlalchemy-bigquery
+    - name: Install jq
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+
+    - name: Setup GCP Credentials
+      run: |
+        echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}' > ${{ github.workspace }}/gcp_key.json
+        echo "Created GCP Key File"
+
+    - name: Validate JSON File
+      run: |
+        jq empty ${{ github.workspace }}/gcp_key.json
+
+    - name: Run Data Validation
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp_key.json
+      run: |
+        echo $GOOGLE_APPLICATION_CREDENTIALS
+        poetry run python dags/expectations.py
