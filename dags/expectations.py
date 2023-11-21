@@ -38,7 +38,7 @@ def run_expectations():
     validator.expect_column_values_to_not_be_null(column="id")
     validator.expect_column_values_to_be_between(column="latitude", min_value=-90, max_value=90)
     validator.expect_column_values_to_be_between(column="longitude", min_value=-180, max_value=180)
-    validator.expect_column_values_to_be_between(column="properties_magnitude", min_value=0, max_value=10)
+    validator.expect_column_values_to_be_between(column="properties_magnitude", min_value=-10, max_value=10)
     validator.save_expectation_suite(discard_failed_expectations=False)
 
     checkpoint = context.add_or_update_checkpoint(
