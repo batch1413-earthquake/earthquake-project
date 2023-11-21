@@ -49,7 +49,7 @@ def run_expectations():
 
     for expectation_result in next(iter(checkpoint_result["run_results"].values()))["validation_result"]["results"]:
         if not expectation_result["success"]:
-            raise Exception("Data validation failed. Error : " + expectation_result)
+            raise Exception("Data validation failed. Error : " + str(expectation_result))
 
 
 if __name__ == "__main__":
